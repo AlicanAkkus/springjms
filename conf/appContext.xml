@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>conf/appProperties.properties</value>
+			</list>
+		</property>
+		<property name="placeholderPrefix" value="${" />
+	</bean>
+
+	<bean id="connectionFactory" class="${jms.connection.factory.name}">
+		<property name="brokerURL" value="${jms.connection.broker.url}" />
+	</bean>
+
+	<bean id="jmsMessageTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="explicitQosEnabled" value="true" />
+		<property name="deliveryPersistent" value="false" />
+		<property name="receiveTimeout" value="1000" />
+		<property name="timeToLive" value="1000" />
+	</bean>
+
+	<bean id="destinationOutputQueue" class="${jms.destination.factory.name}">
+		<constructor-arg value="${jms.output.queue.name}" />
+	</bean>
+	<bean id="destinationReplyQueue" class="${jms.destination.factory.name}">
+		<constructor-arg value="${jms.reply.queue.name}" />
+	</bean>
+
+	<bean id="jmsSender" class="com.caysever.jms.MessageSender">
+		<property name="jmsTemplate" ref="jmsMessageTemplate" />
+		<property name="destination" ref="destinationOutputQueue" />
+	</bean>
+	<bean id="jmsReceiver" class="com.caysever.jms.MessageReceiver">
+		<property name="jmsTemplate" ref="jmsMessageTemplate" />
+		<property name="destination" ref="destinationReplyQueue" />
+	</bean>
+
+</beans>
